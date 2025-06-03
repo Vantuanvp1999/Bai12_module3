@@ -18,7 +18,7 @@ public class UserDao implements IUserDao {
     private static final String DELETE_USER_SQL="DELETE FROM users WHERE id = ?";
     private static final String UPDATE_USERS_SQL="UPDATE users SET name = ?, email = ?, country = ? WHERE id = ?";
     private static final String SELECT_USER_BY_COUNTRY="SELECT id, name, email, country FROM users WHERE country = ?";
-    private static final String ORDER_BY_USER_NAME="ORDER BY name DESC";
+    private static final String ORDER_BY_USER_NAME="SELECT * FROM users ORDER BY name ASC ";
 
     public UserDao() {
     }
@@ -140,7 +140,7 @@ public class UserDao implements IUserDao {
         List<User> users = new ArrayList<>();
         Connection con = getConnection();
         PreparedStatement preparedStatement = con.prepareStatement(SELECT_USER_BY_COUNTRY);
-        preparedStatement.setString(1, "%"+country+"%");
+        preparedStatement.setString(1, country.trim());
         System.out.println(preparedStatement);
         ResultSet rs = preparedStatement.executeQuery();
         while (rs.next()) {
@@ -154,10 +154,19 @@ public class UserDao implements IUserDao {
     }
 
     @Override
-    public void sortUsersByName() throws SQLException {
+    public List<User> sortUsersByName() throws SQLException {
+        List<User> users = new ArrayList<>();
         Connection con = getConnection();
         PreparedStatement preparedStatement = con.prepareStatement(ORDER_BY_USER_NAME);
         System.out.println(preparedStatement);
         ResultSet rs = preparedStatement.executeQuery();
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String name = rs.getString("name");
+            String email = rs.getString("email");
+            String country = rs.getString("country");
+            users.add(new User(id,name, email, country));
+        }
+        return users;
     }
 }

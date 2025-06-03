@@ -42,6 +42,9 @@ public class UserServlet extends HttpServlet {
                 case "search":
                     searchUser(req, resp);
                     break;
+                case "sort":
+                    sortUser(req, resp);
+                    break;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -96,6 +99,9 @@ public class UserServlet extends HttpServlet {
                     break;
                 case "search":
                     searchUser(req, resp); // 👈 Thêm dòng này!
+                    break;
+                case "sort":
+                    sortUser(req, resp);
                     break;
                 default:
                     listUser(req, resp);
@@ -163,11 +169,21 @@ public class UserServlet extends HttpServlet {
         }
 
         req.setAttribute("listUser", users);
-        RequestDispatcher dispatcher = req.getRequestDispatcher("user/list.jsp");
+        RequestDispatcher dispatcher = req.getRequestDispatcher("user/search.jsp");
         try {
             dispatcher.forward(req, resp);
         } catch (ServletException e) {
             throw new RuntimeException(e);
+        }
+    }
+    private void sortUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        List<User> listUser = userDao.sortUsersByName();
+        req.setAttribute("listUser", listUser);
+        RequestDispatcher dispatcher = req.getRequestDispatcher("user/sort.jsp");
+        try {
+            dispatcher.forward(req,resp);
+        } catch (ServletException e) {
+            e.printStackTrace();
         }
     }
 }

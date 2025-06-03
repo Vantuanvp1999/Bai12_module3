@@ -18,6 +18,10 @@
   </h2>
 </center>
 <div align="center">
+  <form action="users" method="get">
+    <input type="hidden" name="action" value="sort">
+    <button type="submit">Sort Users</button>
+  </form>
   <form method="get" action="${pageContext.request.contextPath}/users">
     <input type="hidden" value="search" name="action">
     <input type="text" name="country" id="country" size="45">
