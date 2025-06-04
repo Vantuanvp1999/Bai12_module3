@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet(name = "UserServlet", urlPatterns = "/users")
@@ -55,8 +56,29 @@ public class UserServlet extends HttpServlet {
         String name = req.getParameter("name");
         String email = req.getParameter("email");
         String country = req.getParameter("country");
+
+        String add = req.getParameter("add");
+        String edit = req.getParameter("edit");
+        String delete = req.getParameter("delete");
+        String view = req.getParameter("view");
+
+        List<Integer> permission = new ArrayList<>();
+        if (add != null) {
+            permission.add(1);
+        }
+        if (edit != null) {
+            permission.add(2);
+        }
+        if (delete != null) {
+            permission.add(3);
+        }
+        if (view != null) {
+            permission.add(4);
+        }
         User newUser = new User(name, email, country);
-        userDao.insertUser(newUser);
+        //userDao.insertUser(newUser);
+        //userDao.insertUserStore(newUser);
+        userDao.addUserTransaction(newUser, permission);
         RequestDispatcher dispatcher = req.getRequestDispatcher("user/create.jsp");
         try {
             dispatcher.forward(req, resp);
@@ -71,13 +93,9 @@ public class UserServlet extends HttpServlet {
         String email = req.getParameter("email");
         String country = req.getParameter("country");
         User newUser = new User(id, name, email, country);
-        userDao.updateUser(newUser);
-        RequestDispatcher dispatcher = req.getRequestDispatcher("user/edit.jsp");
-        try {
-            dispatcher.forward(req, resp);
-        } catch (ServletException e) {
-            e.printStackTrace();
-        }
+        //userDao.updateUser(newUser);
+        userDao.updateUserUseProcedure(newUser);
+        resp.sendRedirect(req.getContextPath() + "/users");
     }
 
     @Override
@@ -103,6 +121,12 @@ public class UserServlet extends HttpServlet {
                 case "sort":
                     sortUser(req, resp);
                     break;
+                case "test-without-tran":
+                    testWithoutTran(req, resp);
+                    break;
+                case "test-use-tran":
+                    testUseTran(req, resp);
+                    break;
                 default:
                     listUser(req, resp);
                     break;
@@ -110,6 +134,14 @@ public class UserServlet extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void testUseTran(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        userDao.insertUpdateUseTransaction();
+    }
+
+    private void testWithoutTran(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
+        userDao.insertUpdateWithoutTransaction();
     }
 
     private void showNewForm(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
@@ -123,7 +155,8 @@ public class UserServlet extends HttpServlet {
 
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
         int id = Integer.parseInt(req.getParameter("id"));
-        User existingUser = userDao.selectUser(id);
+        //User existingUser = userDao.selectUser(id);
+        User existingUser = userDao.getUserById(id);
         req.setAttribute("user", existingUser);
         RequestDispatcher dispatcher = req.getRequestDispatcher("user/edit.jsp");
         try {
@@ -135,8 +168,8 @@ public class UserServlet extends HttpServlet {
 
     private void deleteUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
         int id = Integer.parseInt(req.getParameter("id"));
-        userDao.deleteUser(id);
-
+        //userDao.deleteUser(id);
+            userDao.deleteUserUseProcedure(id);
         List<User> listUser = userDao.selectAllUser();
         req.setAttribute("listUser", listUser);
         RequestDispatcher dispatcher = req.getRequestDispatcher("user/list.jsp");
@@ -148,7 +181,8 @@ public class UserServlet extends HttpServlet {
     }
 
     private void listUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
-        List<User> listUser = userDao.selectAllUser();
+        //List<User> listUser = userDao.selectAllUser();
+        List<User> listUser = userDao.selectAllUserUseProcedure();
         req.setAttribute("listUser", listUser);
         RequestDispatcher dispatcher = req.getRequestDispatcher("user/list.jsp");
         try {
@@ -176,12 +210,13 @@ public class UserServlet extends HttpServlet {
             throw new RuntimeException(e);
         }
     }
+
     private void sortUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException {
         List<User> listUser = userDao.sortUsersByName();
         req.setAttribute("listUser", listUser);
         RequestDispatcher dispatcher = req.getRequestDispatcher("user/sort.jsp");
         try {
-            dispatcher.forward(req,resp);
+            dispatcher.forward(req, resp);
         } catch (ServletException e) {
             e.printStackTrace();
         }
